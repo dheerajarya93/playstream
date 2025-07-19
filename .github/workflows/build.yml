@@ -13,9 +13,18 @@ jobs:
         uses: actions/checkout@v3
       - name: Inject TMDB API Key with Obfuscation
         run: |
+          # Create src directory if it doesn't exist (optional, remove if not needed)
+          mkdir -p src
+          echo "Injecting API Key..."
           echo "const apiKey = '${{ secrets.TMDB_API_KEY }}'.split('').reverse().join('');" > src/apiKey.js
-          cat src/apiKey.js >> front.js
-          echo "/* API Key obfuscated and injected */" >> front.js
+          if [ -f front.js ]; then
+            cat src/apiKey.js >> front.js
+            echo "/* API Key obfuscated and injected */" >> front.js
+            echo "Injection successful, front.js updated."
+          else
+            echo "Error: front.js not found in root directory."
+            exit 1
+          fi
         env:
           TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
       - name: Build
