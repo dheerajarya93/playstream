@@ -1,7 +1,7 @@
+const apiKey = atob("ZjBmNTNjZDljOTc1NzcwM2UzMTBhOTRkYzQwY2I0ZWI=");
 const proxy = "https://thingproxy.freeboard.io/fetch/";
 const bust = () => `_cb=${Date.now()}`;
-const apiKey = 'f0f53cd9c9757703e310a94dc40cb4eb';
-/* API Key obfuscated and injected */
+
 let currentFilter = "all";
 let pages = { all: 1, movie: 1, tv: 1 };
 let loading = false;
@@ -441,3 +441,5 @@ new IntersectionObserver(entries => {
 
 fetchGenres();
 fetchContent();
+const apiKey = 'f0f53cd9c9757703e310a94dc40cb4eb';
+/* API Key obfuscated and injected */
