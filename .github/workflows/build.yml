@@ -16,7 +16,7 @@ jobs:
           # Create src directory if it doesn't exist (optional, remove if not needed)
           mkdir -p src
           echo "Injecting API Key..."
-          echo "const apiKey = '${{ secrets.TMDB_API_KEY }}'.split('').reverse().join('');" > src/apiKey.js
+          echo "const apiKey = '${{ secrets.TMDB_API_KEY }}';" > src/apiKey.js
           if [ -f front.js ]; then
             cat src/apiKey.js >> front.js
             echo "/* API Key obfuscated and injected */" >> front.js
