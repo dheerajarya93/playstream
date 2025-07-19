@@ -1,6 +1,7 @@
 const proxy = "https://thingproxy.freeboard.io/fetch/";
 const bust = () => `_cb=${Date.now()}`;
-const apiKey = 'f0f53c9c9757703e310a94dc40cb4eb';
+const apiKey = 'f0f53c9c9757703e310a94dc40cb4eb'.split('').reverse().join('');
+/* API Key obfuscated and injected */;
 /* API Key obfuscated and injected */
 
 let currentFilter = "all";
