@@ -1,3 +1,4 @@
+const apiKey = atob("ZjBmNTNjZDljOTc1NzcwM2UzMTBhOTRkYzQwY2I0ZWI=");
 const proxy = "https://thingproxy.freeboard.io/fetch/";
 const bust = () => `_cb=${Date.now()}`;
 
