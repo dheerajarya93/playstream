@@ -1,6 +1,6 @@
 const apiKey = atob("ZjBmNTNjZDljOTc1NzcwM2UzMTBhOTRkYzQwY2I0ZWI=");
-const proxy = "https://thingproxy.freeboard.io/fetch/";
-//const proxy = "https://cors-anywhere.herokuapp.com/";
+//const proxy = "https://thingproxy.freeboard.io/fetch/";
+const proxy = "https://cors-anywhere.herokuapp.com/";
 //const proxy = '';
 const bust = () => `_cb=${Date.now()}`;
 
