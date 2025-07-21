@@ -1,7 +1,7 @@
 const apiKey = atob("ZjBmNTNjZDljOTc1NzcwM2UzMTBhOTRkYzQwY2I0ZWI=");
-//const proxy = "https://thingproxy.freeboard.io/fetch/";
-const proxy = "https://cors-anywhere.herokuapp.com/";
-//const proxy = "";
+const proxy = "https://thingproxy.freeboard.io/fetch/";
+//const proxy = "https://cors-anywhere.herokuapp.com/";
+//const proxy = '';
 const bust = () => `_cb=${Date.now()}`;
 
 let currentFilter = "all";
@@ -238,7 +238,13 @@ async function showDetails(id, type) {
                 <span class="play-icon"></span> Play
               </button>
             </div>
-          ` : ''}
+          ` : `
+            <div class="action-section">
+              <button class="play-btn" onclick="playVideo('${type}', ${id}, 1, 1)" aria-label="Play ${data.title || data.name} Season 1 Episode 1">
+                <span class="play-icon"></span> Play First Episode
+              </button>
+            </div>
+          `}
           <div class="branding">Powered by Playscape</div>
         </div>
       </div>
@@ -329,7 +335,7 @@ async function loadEpisodes(tvId, seasonNum, data) {
             <div class="episode-info">
               <h4 class="episode-title">${ep.name}</h4>
               <p class="episode-description">${ep.overview || "No overview"}</p>
-              <button class="play-btn" onclick='playVideo("tv", ${ep.id})'>
+              <button class="play-btn" onclick='playVideo("tv", ${tvId}, ${seasonNum}, ${ep.episode_number})'>
                 <span class="play-icon"></span> Play
               </button>
             </div>
@@ -365,7 +371,7 @@ async function showTab(tab, id, type, data) {
   // No action if content already exists
 }
 
-async function playVideo(type, id) {
+async function playVideo(type, id, seasonNum = 1, episodeNum = 1) {
   let pane = document.getElementById("playerPane");
   if (!pane) {
     pane = document.createElement("div");
@@ -378,7 +384,14 @@ async function playVideo(type, id) {
     <span class="backBtn" onclick="this.parentElement.classList.remove('open'); detailPane.classList.add('open')" aria-label="Back to details"></span>
   `;
 
-  const url = `${proxy}https://vidsrc.me/embed/${type}?tmdb=${id}`;
+  let url;
+  //let sub_url = 'https://vidsrc.me/embed/';
+  let sub_url = 'https://player.autoembed.cc/embed/';
+  if (type === "movie") {
+    url = `${sub_url}movie/${id}`;
+  } else if (type === "tv") {
+    url = `${sub_url}tv/${id}/${seasonNum}/${episodeNum}`;
+  }
   try {
     const response = await fetch(url);
     const html = await response.text();
@@ -396,11 +409,11 @@ async function playVideo(type, id) {
       console.log('Video playing from:', videoSrc);
     } else {
       console.error('No video source found in embed. Falling back to iframe.');
-      pane.innerHTML += `<iframe id="videoPlayer" src="${url}" allowfullscreen title="Video player for ${type}" style="width: 100%; height: 100vh;" onload="makeIframeFullHeight();"></iframe>`;
+      pane.innerHTML += `<iframe id="videoPlayer" src="${url}" allowfullscreen title="Video player for ${type}" style="width: 100%; height: 100vh;"></iframe>`;
     }
   } catch (err) {
     console.error('Error fetching video embed:', err);
-    pane.innerHTML += `<iframe id="videoPlayer" src="${url}" allowfullscreen title="Video player for ${type}" style="width: 100%; height: 100vh;" onload="makeIframeFullHeight();"></iframe>`;
+    pane.innerHTML += `<iframe id="videoPlayer" src="${url}" allowfullscreen title="Video player for ${type}" style="width: 100%; height: 100vh;"></iframe>`;
   }
 }
 
