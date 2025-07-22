@@ -361,7 +361,7 @@ nav {
 .tab-container {
   width: 100%;
   margin-top: 15px;
-  max-height: 30vh; /* Constrain height for scrolling */
+  /*max-height: 30vh;*/ /* Constrain height for scrolling */
   overflow-y: auto; /* Ensure scrolling for recommendations */
 }
 
