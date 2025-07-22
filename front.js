@@ -1,5 +1,5 @@
 const apiKey = atob("ZjBmNTNjZDljOTc1NzcwM2UzMTBhOTRkYzQwY2I0ZWI=");
-//const proxy = "https://thingproxy.freeboard.io/fetch/";
+//const proxy = "https://thingproxy.freeboard.io/fetch/"; // WebView: Ensure proxy works; consider native HTTP if blocked
 //const proxy = "https://cors-anywhere.herokuapp.com/";
 const proxy = '';
 const bust = () => `_cb=${Date.now()}`;
@@ -26,6 +26,7 @@ const languageSelect = document.getElementById("languageSelect");
 const filterToggle = document.getElementById("filterToggle");
 const filterSection = document.querySelector(".filter-section");
 
+// WebView: Ensure JavaScript and DOM storage are enabled in the app
 function resetAndLoad() {
   pages = { all: 1, movie: 1, tv: 1 };
   if (grid.all) {
@@ -114,7 +115,7 @@ async function fetchGenres() {
   if (genreCache[currentFilter] || genreCache["all"]) return populateGenres(genreCache[currentFilter] || genreCache["all"]);
   try {
     const url = `${proxy}https://api.themoviedb.org/3/genre/${currentFilter === "all" ? "movie" : currentFilter}/list?api_key=${apiKey}&language=${selectedLanguage}&${bust()}`;
-    const res = await axios.get(url);
+    const res = await axios.get(url); // WebView: Ensure network access is permitted
     genreCache[currentFilter] = res.data.genres;
     populateGenres(res.data.genres);
   } catch (err) {
@@ -216,9 +217,10 @@ async function showDetails(id, type) {
       (data.genre_ids?.length ? r.genre_ids.some(g => data.genre_ids.includes(g)) : r.genre_ids?.length)
     ) || [];
     detailPane.classList.add("open");
+    sessionStorage.setItem("detailPaneOpen", "true");
     detailPane.setAttribute('aria-labelledby', 'detail-title');
     detailPane.innerHTML = `
-      <span class="closeBtn" onclick="detailPane.classList.remove('open')" aria-label="Back to main view"></span>
+      <span class="closeBtn" onclick="detailPane.classList.remove('open'); stopVideo(); sessionStorage.removeItem('detailPaneOpen')" aria-label="Back to main view"></span>
       <div class="detail-content">
         <div class="hero-image">
           ${data.poster_path ? `<img src="https://image.tmdb.org/t/p/w500${data.poster_path}" alt="${data.title || data.name} poster" />` : '<div class="placeholder-image" aria-label="No image available">No Image</div>'}
@@ -282,9 +284,11 @@ async function renderSeasons(tvId, data) {
     const res = await axios.get(`${proxy}https://api.themoviedb.org/3/tv/${tvId}?api_key=${apiKey}&language=${selectedLanguage}&${bust()}`);
     const seasons = res.data.seasons.filter(s => s.season_number !== 0);
     if (seasons.length === 0) return "<p>No seasons available.</p>";
-    const seasonSelect = `<select id="seasonSelect" onchange='loadEpisodes(${tvId}, this.value, ${JSON.stringify(data)})'>${seasons.map(s => `<option value="${s.season_number}">Season ${s.season_number} (${s.episode_count} Episodes)</option>`).join('')}</select>`;
+    const seasonSelect = document.createElement("select");
+    seasonSelect.id = "seasonSelect";
+    seasonSelect.innerHTML = seasons.map(s => `<option value="${s.season_number}">Season ${s.season_number} (${s.episode_count} Episodes)</option>`).join('');
     return `
-      <div class="season-dropdown">${seasonSelect}</div>
+      <div class="season-dropdown">${seasonSelect.outerHTML}</div>
       <div id="episodeList"></div>
     `;
   } catch (err) {
@@ -333,7 +337,7 @@ async function loadEpisodes(tvId, seasonNum, data) {
               ${ep.still_path ? `<img src="https://image.tmdb.org/t/p/w300${ep.still_path}" alt="${ep.name} thumbnail" />` : '<div class="placeholder-image"></div>'}
             </div>
             <div class="episode-info">
-              <h4 class="episode-title">${ep.name}</h4>
+              <h4 class="episode-title">${ep.episode_number}. ${ep.name}</h4>
               <p class="episode-description">${ep.overview || "No overview"}</p>
               <button class="play-btn" onclick='playVideo("tv", ${tvId}, ${seasonNum}, ${ep.episode_number})'>
                 <span class="play-icon"></span> Play
@@ -343,9 +347,12 @@ async function loadEpisodes(tvId, seasonNum, data) {
         `).join("")}
       </div>
     `;
-    // Set the select to the current season
+    // Set the select to the current season and attach event listener
     const select = document.getElementById("seasonSelect");
-    if (select) select.value = seasonNum;
+    if (select) {
+      select.value = seasonNum;
+      select.onchange = () => loadEpisodes(tvId, select.value, data);
+    }
   } catch (err) {
     console.error("Episode load error:", err);
   }
@@ -379,13 +386,14 @@ async function playVideo(type, id, seasonNum = 1, episodeNum = 1) {
     document.body.appendChild(pane);
   }
   pane.className = "player-pane open";
+  sessionStorage.setItem("playerPaneOpen", "true");
+  // WebView: Ensure iframes and video are supported; consider native player fallback
   pane.innerHTML = `
-    <span class="closeBtn" onclick="this.parentElement.classList.remove('open')" aria-label="Close player"></span>
-    <span class="backBtn" onclick="this.parentElement.classList.remove('open'); detailPane.classList.add('open')" aria-label="Back to details"></span>
+    <span class="closeBtn" onclick="stopVideo(); sessionStorage.removeItem('playerPaneOpen')" aria-label="Close player"></span>
+    <span class="backBtn" onclick="stopVideo(); detailPane.classList.add('open'); sessionStorage.removeItem('playerPaneOpen')" aria-label="Back to details"></span>
   `;
 
   let url;
-  //let sub_url = 'https://vidsrc.me/embed/';
   let sub_url = 'https://player.autoembed.cc/embed/';
   if (type === "movie") {
     url = `${sub_url}movie/${id}`;
@@ -414,6 +422,26 @@ async function playVideo(type, id, seasonNum = 1, episodeNum = 1) {
   } catch (err) {
     console.error('Error fetching video embed:', err);
     pane.innerHTML += `<iframe id="videoPlayer" src="${url}" allowfullscreen title="Video player for ${type}" style="width: 100%; height: 100vh;"></iframe>`;
+  }
+}
+
+function stopVideo() {
+  const pane = document.getElementById("playerPane");
+  if (pane) {
+    const video = pane.querySelector('video');
+    const iframe = pane.querySelector('iframe');
+    if (video) {
+      video.pause();
+      video.src = ""; // Clear the source to stop buffering
+      video.remove(); // Remove the video element
+    }
+    if (iframe) {
+      iframe.src = ""; // Clear the iframe source
+      iframe.remove(); // Remove the iframe element
+    }
+    pane.classList.remove('open');
+    pane.innerHTML = ''; // Clear all content
+    sessionStorage.removeItem("playerPaneOpen");
   }
 }
 
@@ -449,6 +477,20 @@ function makeIframeFullHeight() {
 }
 
 const debouncedFetchContent = debounce(fetchContent, 200);
+
+// WebView: Orientation change might not fire reliably; test and adjust
+window.addEventListener("orientationchange", () => {
+  setTimeout(() => {
+    const isDetailOpen = sessionStorage.getItem("detailPaneOpen") === "true";
+    const isPlayerOpen = sessionStorage.getItem("playerPaneOpen") === "true";
+    if (isDetailOpen && detailPane) detailPane.classList.add("open");
+    if (isPlayerOpen) {
+      playVideo("movie", 1); // Placeholder; enhance with saved state if needed
+      const pane = document.getElementById("playerPane");
+      if (pane) pane.classList.add("open");
+    }
+  }, 100);
+});
 
 new IntersectionObserver(entries => {
   if (entries[0].isIntersecting && !loading) debouncedFetchContent();
