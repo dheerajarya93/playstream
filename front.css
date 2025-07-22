@@ -534,7 +534,7 @@ nav {
     font-size: 0.9rem;
   }
   .tab-container {
-    max-height: 30vh;
+    /*max-height: 30vh;*/
   }
   #combinedGridContainer {
     grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
@@ -604,7 +604,7 @@ nav {
     font-size: 0.8rem;
   }
   .tab-container {
-    max-height: 25vh;
+    /*max-height: 25vh;*/
   }
   .recommendation-card {
     flex: 0 0 90px;
@@ -662,7 +662,7 @@ nav {
     font-size: 0.7rem;
   }
   .tab-container {
-    max-height: 20vh;
+    /*max-height: 20vh;*/
   }
   .recommendation-card {
     flex: 0 0 80px;
