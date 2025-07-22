@@ -391,6 +391,7 @@ async function playVideo(type, id, seasonNum = 1, episodeNum = 1) {
   pane.innerHTML = `
     <span class="closeBtn" onclick="stopVideo(); sessionStorage.removeItem('playerPaneOpen')" aria-label="Close player"></span>
     <span class="backBtn" onclick="stopVideo(); detailPane.classList.add('open'); sessionStorage.removeItem('playerPaneOpen')" aria-label="Back to details"></span>
+    <button class="fullscreen-btn" onclick="toggleFullscreen()" aria-label="Toggle fullscreen">Fullscreen</button>
   `;
 
   let url;
@@ -409,6 +410,7 @@ async function playVideo(type, id, seasonNum = 1, episodeNum = 1) {
                      doc.querySelector('video')?.getAttribute('src');
     if (videoSrc) {
       const video = document.createElement('video');
+      video.id = "videoPlayer"; // Add ID for fullscreen
       video.controls = true;
       video.style.width = '100%';
       video.style.height = '100vh';
@@ -442,6 +444,7 @@ function stopVideo() {
     pane.classList.remove('open');
     pane.innerHTML = ''; // Clear all content
     sessionStorage.removeItem("playerPaneOpen");
+    exitFullscreen(); // Exit fullscreen on close
   }
 }
 
@@ -453,6 +456,7 @@ function filterByGenre(id) {
 }
 
 function filterByPerson(name) {
+  console.log(`Filtering by person: ${name}`); // Debug log
   searchInput.value = name;
   query = name;
   detailPane.classList.remove("open");
@@ -478,6 +482,40 @@ function makeIframeFullHeight() {
 
 const debouncedFetchContent = debounce(fetchContent, 200);
 
+// Fullscreen functions
+function toggleFullscreen() {
+  const player = document.getElementById("videoPlayer");
+  if (!player) return;
+
+  if (!document.fullscreenElement) {
+    if (player.requestFullscreen) {
+      player.requestFullscreen().catch(err => {
+        console.error("Fullscreen failed:", err);
+      });
+    } else if (player.webkitRequestFullscreen) { // Safari
+      player.webkitRequestFullscreen();
+    } else if (player.mozRequestFullScreen) { // Firefox
+      player.mozRequestFullScreen();
+    } else if (player.msRequestFullscreen) { // IE/Edge
+      player.msRequestFullscreen();
+    }
+  } else {
+    exitFullscreen();
+  }
+}
+
+function exitFullscreen() {
+  if (document.exitFullscreen) {
+    document.exitFullscreen();
+  } else if (document.webkitExitFullscreen) {
+    document.webkitExitFullscreen();
+  } else if (document.mozCancelFullScreen) {
+    document.mozCancelFullScreen();
+  } else if (document.msExitFullscreen) {
+    document.msExitFullscreen();
+  }
+}
+
 // WebView: Orientation change might not fire reliably; test and adjust
 window.addEventListener("orientationchange", () => {
   setTimeout(() => {
@@ -488,6 +526,11 @@ window.addEventListener("orientationchange", () => {
       playVideo("movie", 1); // Placeholder; enhance with saved state if needed
       const pane = document.getElementById("playerPane");
       if (pane) pane.classList.add("open");
+    }
+    // Encourage landscape for player pane
+    if (isPlayerOpen && window.orientation !== 90 && window.orientation !== -90) {
+      console.warn("Landscape mode recommended for player pane");
+      // WebView: Native lock to landscape required here
     }
   }, 100);
 });
