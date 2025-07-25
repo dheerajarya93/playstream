@@ -810,7 +810,7 @@ nav {
   object-fit: cover;
 }
 
-.player-pane.open {
+.player-pane {
   position: fixed;
   top: 0;
   left: 0;
@@ -818,16 +818,32 @@ nav {
   height: 100vh;
   background: #000;
   z-index: 1000;
-  display: flex;
+  display: none; /* Hidden by default */
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  transition: transform 0.3s ease; /* Smooth transition for rotation */
 }
 
-.player-pane .fullscreen-btn {
+.player-pane.open {
+  display: flex; /* Show when open */
+}
+
+.player-pane.landscape {
+  transform: rotate(90deg);
+  transform-origin: 50% 50%;
+  top: 50%;
+  left: 50%;
+  width: 100vh;
+  height: 100vw;
+  margin-left: -50vh;
+  margin-top: -50vw;
+}
+
+.player-pane .closeBtn,
+.player-pane .backBtn {
   position: absolute;
   top: 10px;
-  right: 10px;
   padding: 5px 10px;
   background: rgba(0, 0, 0, 0.7);
   color: white;
@@ -835,14 +851,33 @@ nav {
   cursor: pointer;
 }
 
-@media (orientation: portrait) {
-  .player-pane.open {
-    display: none; /* Optionally hide in portrait to enforce landscape */
-  }
+.player-pane .closeBtn {
+  right: 10px;
 }
 
-@media (orientation: landscape) {
-  .player-pane.open {
-    display: flex; /* Ensure visible in landscape */
-  }
+.player-pane .backBtn {
+  left: 10px;
+}
+
+.player-pane .fullscreen-btn {
+  position: absolute;
+  top: 10px;
+  right: 50px;
+  padding: 5px 10px;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+#videoPlayer {
+  width: 100%;
+  height: 100%;
+  max-width: 100vw;
+  max-height: 100vh;
+  object-fit: contain;
+}
+
+iframe#videoPlayer {
+  border: none;
 }
