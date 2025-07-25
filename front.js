@@ -1,7 +1,7 @@
 const apiKey = atob("ZjBmNTNjZDljOTc1NzcwM2UzMTBhOTRkYzQwY2I0ZWI=");
 //const proxy = "https://thingproxy.freeboard.io/fetch/"; // WebView: Ensure proxy works; consider native HTTP if blocked
 //const proxy = "https://cors-anywhere.herokuapp.com/";
-//const proxy = '';
+const proxy = '';
 const bust = () => `_cb=${Date.now()}`;
 
 let currentFilter = "all";
