@@ -412,17 +412,17 @@ async function playVideo(type, id, seasonNum = 1, episodeNum = 1) {
       video.id = "videoPlayer"; // Add ID for fullscreen
       video.controls = true;
       video.style.width = '100%';
-      video.style.height = '100vh';
+      video.style.height = '100%';
       video.innerHTML = `<source src="${videoSrc}" type="video/mp4">`;
       pane.appendChild(video);
       console.log('Video playing from:', videoSrc);
     } else {
       console.error('No video source found in embed. Falling back to iframe.');
-      pane.innerHTML += `<iframe id="videoPlayer" src="${url}" allowfullscreen title="Video player for ${type}" style="width: 100%; height: 100vh;"></iframe>`;
+      pane.innerHTML += `<iframe id="videoPlayer" src="${url}" allowfullscreen title="Video player for ${type}" style="width: 100%; height: 100%;"></iframe>`;
     }
   } catch (err) {
     console.error('Error fetching video embed:', err);
-    pane.innerHTML += `<iframe id="videoPlayer" src="${url}" allowfullscreen title="Video player for ${type}" style="width: 100%; height: 100vh;"></iframe>`;
+    pane.innerHTML += `<iframe id="videoPlayer" src="${url}" allowfullscreen title="Video player for ${type}" style="width: 100%; height: 100%;"></iframe>`;
   }
 }
 
@@ -474,7 +474,7 @@ function makeIframeFullHeight() {
   let videoPlayer = document.getElementById("videoPlayer");
   setTimeout(function() {
     const iframeDocument = videoPlayer.contentDocument || videoPlayer.contentWindow.document;
-    if (iframeDocument) iframeDocument.body.style.height = '100vh';
+    if (iframeDocument) iframeDocument.body.style.height = '100%';
     console.log(iframeDocument);
   }, 5000);
 }
