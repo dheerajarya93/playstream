@@ -12,6 +12,7 @@ let selectedGenre = "";
 let includeAdult = false;
 let selectedLanguage = "en";
 const genreCache = {};
+let peopleQuery = ""; // New variable for people-specific filtering
 
 const grid = { all: document.getElementById("combinedGridContainer") };
 const searchInput = document.getElementById("searchInput");
@@ -47,6 +48,7 @@ contentTypeFilter.addEventListener("change", () => {
 
 searchInput.addEventListener("input", () => {
   query = searchInput.value.trim();
+  peopleQuery = ""; // Reset people query when general search is used
   resetAndLoad();
 });
 
@@ -68,6 +70,7 @@ if (adultFilter) {
 if (clearSearchBtn) {
   clearSearchBtn.addEventListener("click", () => {
     query = "";
+    peopleQuery = ""; // Clear people query too
     searchInput.value = "";
     resetAndLoad();
   });
@@ -132,9 +135,33 @@ async function fetchContent() {
   loading = true;
   const page = pages[currentFilter];
   let combinedResults = [];
-  console.log(`Fetching content for filter: ${currentFilter}, page: ${page}, query: "${query}", genre: ${selectedGenre}, adult: ${includeAdult}, language: ${selectedLanguage}`);
+  console.log(`Fetching content for filter: ${currentFilter}, page: ${page}, query: "${query}", people: "${peopleQuery}", genre: ${selectedGenre}, adult: ${includeAdult}, language: ${selectedLanguage}`);
 
-  if (query) {
+  if (peopleQuery) {
+    try {
+      // Use TMDB person search to find content associated with the actor
+      const personSearchUrl = `${proxy}https://api.themoviedb.org/3/search/person?api_key=${apiKey}&query=${encodeURIComponent(peopleQuery)}&language=${selectedLanguage}&include_adult=${includeAdult}&${bust()}`;
+      const personRes = await axios.get(personSearchUrl);
+      const person = personRes.data.results[0]; // Take the first matching person
+      if (person) {
+        const creditsUrl = `${proxy}https://api.themoviedb.org/3/person/${person.id}/combined_credits?api_key=${apiKey}&${bust()}`;
+        const creditsRes = await axios.get(creditsUrl);
+        combinedResults = creditsRes.data.cast.filter(item => 
+          (currentFilter === "all" || item.media_type === currentFilter) && item.poster_path
+        ).map(item => ({
+          id: item.id,
+          media_type: item.media_type,
+          title: item.title || item.name,
+          poster_path: item.poster_path,
+          vote_average: item.vote_average
+        }));
+      }
+    } catch (err) {
+      console.error("People filter fetch failed:", err);
+      loading = false;
+      return;
+    }
+  } else if (query) {
     try {
       const url = `${proxy}https://api.themoviedb.org/3/search/multi?api_key=${apiKey}&query=${encodeURIComponent(query)}&page=${page}&include_adult=${includeAdult}&language=${selectedLanguage}&${bust()}`;
       const res = await axios.get(url);
@@ -232,7 +259,7 @@ async function showDetails(id, type) {
             <span><strong>Rating:</strong> ⭐ ${data.vote_average.toFixed(1)}/10</span>
             <span><strong>Runtime:</strong> ${type === "movie" ? `${data.runtime} min` : `${data.episode_run_time?.[0] || 'N/A'} min per episode`}</span>
             <span><strong>Genres:</strong> ${data.genres?.map(g => `<button class="filter-btn" onclick="filterByGenre(${g.id})">${g.name}</button>`).join(", ") || "N/A"}</span>
-            <span><strong>Cast:</strong> ${cast.map(p => `<button class="filter-btn" onclick="filterByPerson('${p.name}')">${p.name}</button>`).join(", ")}</span>
+            <span><strong>Cast:</strong> ${cast.map(p => `<button class="filter-btn" onclick="filterByPeople('${p.name}')">${p.name}</button>`).join(", ")}</span>
           </div>
           ${type === "movie" ? `
             <div class="action-section">
@@ -412,17 +439,17 @@ async function playVideo(type, id, seasonNum = 1, episodeNum = 1) {
       video.id = "videoPlayer"; // Add ID for fullscreen
       video.controls = true;
       video.style.width = '100%';
-      video.style.height = '100%';
+      video.style.height = '100vh';
       video.innerHTML = `<source src="${videoSrc}" type="video/mp4">`;
       pane.appendChild(video);
       console.log('Video playing from:', videoSrc);
     } else {
       console.error('No video source found in embed. Falling back to iframe.');
-      pane.innerHTML += `<iframe id="videoPlayer" src="${url}" allowfullscreen title="Video player for ${type}" style="width: 100%; height: 100%;"></iframe>`;
+      pane.innerHTML += `<iframe id="videoPlayer" src="${url}" allowfullscreen title="Video player for ${type}" style="width: 100%; height: 100vh;"></iframe>`;
     }
   } catch (err) {
     console.error('Error fetching video embed:', err);
-    pane.innerHTML += `<iframe id="videoPlayer" src="${url}" allowfullscreen title="Video player for ${type}" style="width: 100%; height: 100%;"></iframe>`;
+    pane.innerHTML += `<iframe id="videoPlayer" src="${url}" allowfullscreen title="Video player for ${type}" style="width: 100%; height: 100vh;"></iframe>`;
   }
 }
 
@@ -454,10 +481,10 @@ function filterByGenre(id) {
   resetAndLoad();
 }
 
-function filterByPerson(name) {
-  console.log(`Filtering by person: ${name}`); // Debug log for people search
-  searchInput.value = name;
-  query = name;
+function filterByPeople(name) {
+  console.log(`Filtering by person: ${name}`); // Debug log
+  peopleQuery = name; // Set people-specific query without affecting searchInput
+  query = ""; // Reset general query to prioritize people filter
   detailPane.classList.remove("open");
   resetAndLoad();
 }
@@ -474,7 +501,7 @@ function makeIframeFullHeight() {
   let videoPlayer = document.getElementById("videoPlayer");
   setTimeout(function() {
     const iframeDocument = videoPlayer.contentDocument || videoPlayer.contentWindow.document;
-    if (iframeDocument) iframeDocument.body.style.height = '100%';
+    if (iframeDocument) iframeDocument.body.style.height = '100vh';
     console.log(iframeDocument);
   }, 5000);
 }
