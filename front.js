@@ -26,6 +26,7 @@ const clearSearchBtn = document.getElementById("clearSearchBtn");
 const languageSelect = document.getElementById("languageSelect");
 const filterToggle = document.getElementById("filterToggle");
 const filterSection = document.querySelector(".filter-section");
+const header = document.querySelector("header"); // Assuming a header element exists
 
 // WebView: Ensure JavaScript and DOM storage are enabled in the app
 function resetAndLoad() {
@@ -38,6 +39,7 @@ function resetAndLoad() {
   }
   fetchGenres();
   fetchContent();
+  updateHeaderFilter();
   localStorage.setItem("query", query);
 }
 
@@ -259,7 +261,7 @@ async function showDetails(id, type) {
             <span><strong>Rating:</strong> ⭐ ${data.vote_average.toFixed(1)}/10</span>
             <span><strong>Runtime:</strong> ${type === "movie" ? `${data.runtime} min` : `${data.episode_run_time?.[0] || 'N/A'} min per episode`}</span>
             <span><strong>Genres:</strong> ${data.genres?.map(g => `<button class="filter-btn" onclick="filterByGenre(${g.id})">${g.name}</button>`).join(", ") || "N/A"}</span>
-            <span><strong>Cast:</strong> ${cast.map(p => `<button class="filter-btn" onclick="filterByPeople('${p.name}')">${p.name}</button>`).join(", ")}</span>
+            <span><strong>Cast:</strong> ${cast.map(p => `<button class="filter-btn" onclick="filterByPeople('${p.name.replace(/'/g, "\\'")}')">${p.name}</button>`).join(", ")}</span>
           </div>
           ${type === "movie" ? `
             <div class="action-section">
@@ -470,7 +472,9 @@ function stopVideo() {
     pane.classList.remove('open', 'landscape'); // Revert to portrait by removing landscape class
     pane.innerHTML = ''; // Clear all content
     sessionStorage.removeItem("playerPaneOpen");
-    exitFullscreen(); // Exit fullscreen on close
+    if (document.fullscreenElement) {
+      exitFullscreen().catch(err => console.warn("Failed to exit fullscreen:", err));
+    }
   }
 }
 
@@ -487,6 +491,29 @@ function filterByPeople(name) {
   query = ""; // Reset general query to prioritize people filter
   detailPane.classList.remove("open");
   resetAndLoad();
+}
+
+function clearPeopleFilter() {
+  console.log("Clearing people filter"); // Debug log
+  peopleQuery = ""; // Clear the people query
+  resetAndLoad(); // Reload content based on previous query or default
+}
+
+function updateHeaderFilter() {
+  if (header) {
+    if (peopleQuery) {
+      header.innerHTML = `
+        <div class="people-filter">
+          <span>Filtered by: ${peopleQuery}</span>
+          <button class="clear-people-btn" onclick="clearPeopleFilter()">Clear People Filter</button>
+        </div>
+      ` + header.innerHTML.replace(/<div class="people-filter">[\s\S]*?<\/div>/, '');
+    } else {
+      header.innerHTML = header.innerHTML.replace(/<div class="people-filter">[\s\S]*?<\/div>/, '');
+    }
+  } else {
+    console.warn("Header element not found in DOM. Ensure <header> exists in HTML.");
+  }
 }
 
 function debounce(fn, delay) {
@@ -532,13 +559,13 @@ function toggleFullscreen() {
 
 function exitFullscreen() {
   if (document.exitFullscreen) {
-    document.exitFullscreen();
+    return document.exitFullscreen();
   } else if (document.webkitExitFullscreen) {
-    document.webkitExitFullscreen();
+    return document.webkitExitFullscreen();
   } else if (document.mozCancelFullScreen) {
-    document.mozCancelFullScreen();
+    return document.mozCancelFullScreen();
   } else if (document.msExitFullscreen) {
-    document.msExitFullscreen();
+    return document.msExitFullscreen();
   }
 }
 
