@@ -64,6 +64,7 @@ header {
   gap: 10px;
   flex-wrap: wrap;
   width: 100%;
+  justify-content: space-evenly;
 }
 
 #themeToggle,
@@ -78,7 +79,6 @@ label {
   background: var(--card-bg);
   color: var(--text-color);
   transition: border-color 0.2s, background 0.2s;
-  min-height: 40px; /* Ensure touch-friendly height */
 }
 
 #clearSearchBtn:hover,
@@ -879,4 +879,33 @@ nav {
 
 iframe#videoPlayer {
   border: none;
+}
+
+/* New styles for header people filter */
+.people-filter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 10px;
+  background-color: #f0f0f0;
+  border-bottom: 1px solid #ddd;
+}
+
+.people-filter span {
+  font-size: 14px;
+  color: #333;
+}
+
+.clear-people-btn {
+  padding: 5px 10px;
+  background-color: #ff4444;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.clear-people-btn:hover {
+  background-color: #cc0000;
 }
