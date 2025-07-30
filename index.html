@@ -1,53 +1,72 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>🎬 PlayScape</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="front.css" />
-</head>
-<body>
-  <header>
-    <div style="font-weight:bold;font-size:1.2rem;white-space:nowrap;">🎬 PlayScape</div>
-    <button id="filterToggle">☰</button>
-    <div class="filter-section">
-      <input type="text" id="searchInput" placeholder="Search...">
-      <button id="clearSearchBtn">×</button>
-      <select id="genreSelect"></select>
-      <select id="contentTypeFilter">
-        <option value="all">All</option>
-        <option value="movie">Movies</option>
-        <option value="tv">TV Shows</option>
-      </select>
-      <input type="checkbox" id="adultFilter">
-      <label for="adultFilter">Include Adult</label>
-      <select id="languageSelect">
-        <option value="en">English</option>
-        <option value="es">Spanish</option>
-        <option value="fr">French</option>
-        <option value="de">German</option>
-        <option value="hi">Hindi</option>
-      </select>
-      <label for="languageSelect">Language</label>
-      <input type="checkbox" id="themeToggle">
-      <label for="themeToggle">Light Mode</label>
+  <head>
+    <meta charset="UTF-8" />
+    <title>🎬 PlayScape</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="front.css" />
+  </head>
+  <body>
+    <header>
+      <div style="font-weight: bold; font-size: 1.2rem; white-space: nowrap">
+        🎬 PlayScape
+      </div>
+      <button id="filterToggle">☰</button>
+      <div class="filter-section">
+        <div id="header"></div>
+        <div>
+          <input type="text" id="searchInput" placeholder="Search..." />
+          <button id="clearSearchBtn" type="button">×</button>
+          <button id="searchButton" type="button">Search</button>
+        </div>
+
+        <select id="genreSelect"></select>
+        <select id="contentTypeFilter">
+          <option value="all">All</option>
+          <option value="movie">Movies</option>
+          <option value="tv">TV Shows</option>
+        </select>
+        
+        <div>
+          <select id="languageSelect">
+            <option value="">-Language-</option>
+            <option value="en">English</option>
+            <option value="es">Spanish</option>
+            <option value="fr">French</option>
+            <option value="de">German</option>
+          </select>
+        </div>
+        <div>
+          <input type="checkbox" id="adultFilter" />
+          <label for="adultFilter">Include Adult</label>
+        </div>
+        <div>
+          <input type="checkbox" id="themeToggle" />
+          <label for="themeToggle">Light Mode</label>
+        </div>
+      </div>
+    </header>
+
+    <div id="combinedGridContainer" class="grid"></div>
+    <div id="sentinel"></div>
+
+    <!-- Full-width detail pane -->
+    <div id="detailPane" class="detail-pane"></div>
+
+    <!-- Full-width player pane -->
+    <div id="playerPane" class="player-pane">
+      <span
+        class="closeBtn"
+        onclick="this.parentElement.classList.remove('open')"
+      ></span>
+      <iframe id="videoPlayer" title="Video player"></iframe>
     </div>
-  </header>
 
-  <div id="combinedGridContainer" class="grid"></div>
-  <div id="sentinel"></div>
-
-  <!-- Full-width detail pane -->
-  <div id="detailPane" class="detail-pane"></div>
-
-  <!-- Full-width player pane -->
-  <div id="playerPane" class="player-pane">
-    <span class="closeBtn" onclick="this.parentElement.classList.remove('open')"></span>
-    <iframe id="videoPlayer" title="Video player"></iframe>
-  </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-  <script src="front.js"></script>
-</body>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="_front.js"></script>
+  </body>
 </html>
