@@ -1,21 +1,21 @@
 const apiKey = atob("ZjBmNTNjZDljOTc1NzcwM2UzMTBhOTRkYzQwY2I0ZWI=");
-//const proxy = "https://thingproxy.freeboard.io/fetch/"; // WebView: Ensure proxy works; consider native HTTP if blocked
-//const proxy = "https://cors-anywhere.herokuapp.com/";
+//const proxy = "https://thingproxy.freeboard.io/fetch/"; // WebView: Ensure proxy works
 const proxy = '';
 const bust = () => `_cb=${Date.now()}`;
 
 let currentFilter = "all";
 let pages = { all: 1, movie: 1, tv: 1 };
 let loading = false;
-let query = localStorage.getItem("query") || "";
+let query = "";
 let selectedGenre = "";
 let includeAdult = false;
 let selectedLanguage = "en";
 const genreCache = {};
-let peopleQuery = ""; // New variable for people-specific filtering
+let peopleQuery = "";
 
 const grid = { all: document.getElementById("combinedGridContainer") };
 const searchInput = document.getElementById("searchInput");
+const searchButton = document.getElementById("searchButton");
 const genreSelect = document.getElementById("genreSelect");
 const contentTypeFilter = document.getElementById("contentTypeFilter");
 const adultFilter = document.getElementById("adultFilter");
@@ -26,9 +26,8 @@ const clearSearchBtn = document.getElementById("clearSearchBtn");
 const languageSelect = document.getElementById("languageSelect");
 const filterToggle = document.getElementById("filterToggle");
 const filterSection = document.querySelector(".filter-section");
-const header = document.querySelector("header"); // Assuming a header element exists
+const header = document.getElementById("header");
 
-// WebView: Ensure JavaScript and DOM storage are enabled in the app
 function resetAndLoad() {
   pages = { all: 1, movie: 1, tv: 1 };
   if (grid.all) {
@@ -40,7 +39,6 @@ function resetAndLoad() {
   fetchGenres();
   fetchContent();
   updateHeaderFilter();
-  localStorage.setItem("query", query);
 }
 
 contentTypeFilter.addEventListener("change", () => {
@@ -49,10 +47,23 @@ contentTypeFilter.addEventListener("change", () => {
 });
 
 searchInput.addEventListener("input", () => {
-  query = searchInput.value.trim();
-  peopleQuery = ""; // Reset people query when general search is used
-  resetAndLoad();
+  query = searchInput.value.trim(); // Update query on every input change
 });
+
+if (searchButton) {
+  searchButton.addEventListener("click", (e) => {
+    e.preventDefault(); // Prevent page reload
+    query = searchInput.value.trim(); // Use current input value
+    peopleQuery = ""; // Reset people query
+    if (query) {
+      resetAndLoad();
+    } else {
+      console.warn("Search query is empty. Please enter a movie or TV show name.");
+    }
+  });
+} else {
+  console.warn("Search button not found in DOM. Ensure <button id='searchButton'> exists in HTML.");
+}
 
 genreSelect.addEventListener("change", () => {
   selectedGenre = genreSelect.value === "reset" ? "" : genreSelect.value;
@@ -72,9 +83,9 @@ if (adultFilter) {
 if (clearSearchBtn) {
   clearSearchBtn.addEventListener("click", () => {
     query = "";
-    peopleQuery = ""; // Clear people query too
-    searchInput.value = "";
-    resetAndLoad();
+    peopleQuery = "";
+    searchInput.value = ""; // Clear the input field
+    resetAndLoad(); // Reload with empty query
   });
 } else {
   console.warn("Clear search button not found in DOM. Ensure <button id='clearSearchBtn'> exists in HTML.");
@@ -112,15 +123,11 @@ if (filterToggle && filterSection) {
   console.warn("Filter toggle or filter section not found in DOM. Ensure <button id='filterToggle'> and .filter-section exist in HTML.");
 }
 
-if (searchInput) {
-  searchInput.value = query;
-}
-
 async function fetchGenres() {
   if (genreCache[currentFilter] || genreCache["all"]) return populateGenres(genreCache[currentFilter] || genreCache["all"]);
   try {
     const url = `${proxy}https://api.themoviedb.org/3/genre/${currentFilter === "all" ? "movie" : currentFilter}/list?api_key=${apiKey}&language=${selectedLanguage}&${bust()}`;
-    const res = await axios.get(url); // WebView: Ensure network access is permitted
+    const res = await axios.get(url);
     genreCache[currentFilter] = res.data.genres;
     populateGenres(res.data.genres);
   } catch (err) {
@@ -141,12 +148,11 @@ async function fetchContent() {
 
   if (peopleQuery) {
     try {
-      // Use TMDB person search to find content associated with the actor
       const personSearchUrl = `${proxy}https://api.themoviedb.org/3/search/person?api_key=${apiKey}&query=${encodeURIComponent(peopleQuery)}&language=${selectedLanguage}&include_adult=${includeAdult}&${bust()}`;
       const personRes = await axios.get(personSearchUrl);
-      const person = personRes.data.results[0]; // Take the first matching person
+      const person = personRes.data.results[0];
       if (person) {
-        const creditsUrl = `${proxy}https://api.themoviedb.org/3/person/${person.id}/combined_credits?api_key=${apiKey}&${bust()}`;
+        const creditsUrl = `${proxy}https://api.themoviedb.org/3/person/${person.id}/combined_credits?api_key=${apiKey}&page=${page}&${bust()}`;
         const creditsRes = await axios.get(creditsUrl);
         combinedResults = creditsRes.data.cast.filter(item => 
           (currentFilter === "all" || item.media_type === currentFilter) && item.poster_path
@@ -238,10 +244,10 @@ async function showDetails(id, type) {
       axios.get(`${proxy}https://api.themoviedb.org/3/${type}/${id}/recommendations?api_key=${apiKey}&language=${selectedLanguage}&page=1&${bust()}`)
     ]);
     const data = res.data;
-    const cast = credits.data.cast.slice(0, 5);
+    const cast = credits.data.cast;
     let recommendations = recs.data.results || [];
     if (!Array.isArray(recommendations)) recommendations = [];
-    recommendations = recommendations.slice(0, 10).filter(r => 
+    recommendations = recommendations.filter(r => 
       r.vote_average >= 6.0 && 
       (data.genre_ids?.length ? r.genre_ids.some(g => data.genre_ids.includes(g)) : r.genre_ids?.length)
     ) || [];
@@ -376,7 +382,6 @@ async function loadEpisodes(tvId, seasonNum, data) {
         `).join("")}
       </div>
     `;
-    // Set the select to the current season and attach event listener
     const select = document.getElementById("seasonSelect");
     if (select) {
       select.value = seasonNum;
@@ -392,19 +397,17 @@ async function showTab(tab, id, type, data) {
   if (tab === "seasons" && !tabContent.querySelector("#seasonSelect")) {
     const seasonsHtml = await renderSeasons(id, data);
     tabContent.innerHTML = seasonsHtml;
-    loadEpisodes(id, 1, data); // Load episodes for the first season by default
+    loadEpisodes(id, 1, data);
   } else if (tab === "recommendations" && !tabContent.querySelector(".recommendation-grid")) {
     const recommendationsPromise = axios.get(`${proxy}https://api.themoviedb.org/3/${type}/${id}/recommendations?api_key=${apiKey}&language=${selectedLanguage}&page=1&${bust()}`);
     recommendationsPromise.then(r => {
       const recommendations = r.data.results || [];
-      console.log("Recommendations data:", recommendations);
       tabContent.innerHTML = renderRecommendations(recommendations, data);
     }).catch(err => {
       console.error("Recommendation fetch error:", err);
       tabContent.innerHTML = renderRecommendations([], data);
     });
   }
-  // No action if content already exists
 }
 
 async function playVideo(type, id, seasonNum = 1, episodeNum = 1) {
@@ -414,7 +417,7 @@ async function playVideo(type, id, seasonNum = 1, episodeNum = 1) {
     pane.id = "playerPane";
     document.body.appendChild(pane);
   }
-  pane.className = "player-pane open landscape"; // Add landscape class for rotation
+  pane.className = "player-pane open landscape";
   sessionStorage.setItem("playerPaneOpen", "true");
   pane.innerHTML = `
     <span class="closeBtn" onclick="stopVideo(); sessionStorage.removeItem('playerPaneOpen')" aria-label="Close player"></span>
@@ -438,20 +441,19 @@ async function playVideo(type, id, seasonNum = 1, episodeNum = 1) {
                      doc.querySelector('video')?.getAttribute('src');
     if (videoSrc) {
       const video = document.createElement('video');
-      video.id = "videoPlayer"; // Add ID for fullscreen
+      video.id = "videoPlayer";
       video.controls = true;
       video.style.width = '100%';
-      video.style.height = '100vh';
+      video.style.height = '100%';
       video.innerHTML = `<source src="${videoSrc}" type="video/mp4">`;
       pane.appendChild(video);
       console.log('Video playing from:', videoSrc);
     } else {
-      console.error('No video source found in embed. Falling back to iframe.');
-      pane.innerHTML += `<iframe id="videoPlayer" src="${url}" allowfullscreen title="Video player for ${type}" style="width: 100%; height: 100vh;"></iframe>`;
+      pane.innerHTML += `<iframe id="videoPlayer" src="${url}" allowfullscreen title="Video player for ${type}" style="width: 100%; height: 100%;"></iframe>`;
     }
   } catch (err) {
     console.error('Error fetching video embed:', err);
-    pane.innerHTML += `<iframe id="videoPlayer" src="${url}" allowfullscreen title="Video player for ${type}" style="width: 100%; height: 100vh;"></iframe>`;
+    pane.innerHTML += `<iframe id="videoPlayer" src="${url}" allowfullscreen title="Video player for ${type}" style="width: 100%; height: 100%;"></iframe>`;
   }
 }
 
@@ -462,15 +464,15 @@ function stopVideo() {
     const iframe = pane.querySelector('iframe');
     if (video) {
       video.pause();
-      video.src = ""; // Clear the source to stop buffering
-      video.remove(); // Remove the video element
+      video.src = "";
+      video.remove();
     }
     if (iframe) {
-      iframe.src = ""; // Clear the iframe source
-      iframe.remove(); // Remove the iframe element
+      iframe.src = "";
+      iframe.remove();
     }
-    pane.classList.remove('open', 'landscape'); // Revert to portrait by removing landscape class
-    pane.innerHTML = ''; // Clear all content
+    pane.classList.remove('open', 'landscape');
+    pane.innerHTML = '';
     sessionStorage.removeItem("playerPaneOpen");
     if (document.fullscreenElement) {
       exitFullscreen().catch(err => console.warn("Failed to exit fullscreen:", err));
@@ -486,17 +488,17 @@ function filterByGenre(id) {
 }
 
 function filterByPeople(name) {
-  console.log(`Filtering by person: ${name}`); // Debug log
-  peopleQuery = name; // Set people-specific query without affecting searchInput
-  query = ""; // Reset general query to prioritize people filter
+  console.log(`Filtering by person: ${name}`);
+  peopleQuery = name;
+  query = "";
   detailPane.classList.remove("open");
   resetAndLoad();
 }
 
 function clearPeopleFilter() {
-  console.log("Clearing people filter"); // Debug log
-  peopleQuery = ""; // Clear the people query
-  resetAndLoad(); // Reload content based on previous query or default
+  console.log("Clearing people filter");
+  peopleQuery = "";
+  resetAndLoad();
 }
 
 function updateHeaderFilter() {
@@ -524,32 +526,20 @@ function debounce(fn, delay) {
   };
 }
 
-function makeIframeFullHeight() {
-  let videoPlayer = document.getElementById("videoPlayer");
-  setTimeout(function() {
-    const iframeDocument = videoPlayer.contentDocument || videoPlayer.contentWindow.document;
-    if (iframeDocument) iframeDocument.body.style.height = '100vh';
-    console.log(iframeDocument);
-  }, 5000);
-}
-
 const debouncedFetchContent = debounce(fetchContent, 200);
 
-// Fullscreen functions
 function toggleFullscreen() {
   const player = document.getElementById("videoPlayer");
   if (!player) return;
 
   if (!document.fullscreenElement) {
     if (player.requestFullscreen) {
-      player.requestFullscreen().catch(err => {
-        console.error("Fullscreen failed:", err);
-      });
-    } else if (player.webkitRequestFullscreen) { // Safari
+      player.requestFullscreen().catch(err => console.error("Fullscreen failed:", err));
+    } else if (player.webkitRequestFullscreen) {
       player.webkitRequestFullscreen();
-    } else if (player.mozRequestFullScreen) { // Firefox
+    } else if (player.mozRequestFullScreen) {
       player.mozRequestFullScreen();
-    } else if (player.msRequestFullscreen) { // IE/Edge
+    } else if (player.msRequestFullscreen) {
       player.msRequestFullscreen();
     }
   } else {
@@ -569,7 +559,6 @@ function exitFullscreen() {
   }
 }
 
-// Handle orientation change to restore pane states
 window.addEventListener("orientationchange", () => {
   setTimeout(() => {
     const isDetailOpen = sessionStorage.getItem("detailPaneOpen") === "true";
@@ -577,9 +566,9 @@ window.addEventListener("orientationchange", () => {
     const pane = document.getElementById("playerPane");
     if (isDetailOpen && detailPane) detailPane.classList.add("open");
     if (isPlayerOpen && pane) {
-      pane.classList.add("open", "landscape"); // Ensure landscape on rotation
+      pane.classList.add("open", "landscape");
     }
-  }, 100); // Small delay to ensure DOM is updated
+  }, 100);
 });
 
 new IntersectionObserver(entries => {
