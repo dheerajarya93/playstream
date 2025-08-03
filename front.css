@@ -837,8 +837,8 @@ nav {
   bottom:0%;
   width: 100%;
   height: 100%;
-  margin-left: -50vh;
-  margin-top: -50vw;
+  margin-left: 0vh;
+  margin-top: 0vw;
 }
 
 .player-pane .closeBtn,
