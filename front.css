@@ -831,14 +831,12 @@ nav {
 .player-pane.landscape {
   transform: rotate(90deg);
   transform-origin: 50% 50%;
-  top: 0%;
-  left: 0%;
-  right:0%;
-  bottom:0%;
+  top: 50%;
+  left: 50%;
   width: 100%;
   height: 100%;
-  margin-left: 0vh;
-  margin-top: 0vw;
+  margin-left: -50vh;
+  margin-top: -50vw;
 }
 
 .player-pane .closeBtn,
@@ -910,4 +908,109 @@ iframe#videoPlayer {
 
 .clear-people-btn:hover {
   background-color: #cc0000;
+}
+
+/* Existing player-pane styles (keep these as base) */
+.player-pane {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #000;
+  z-index: 1000;
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  transition: transform 0.3s ease;
+}
+
+.player-pane.open {
+  display: flex;
+}
+
+/* Updated landscape mode */
+.player-pane.landscape {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vh; /* Use viewport height as width when rotated */
+  height: 100vw; /* Use viewport width as height when rotated */
+  transform: rotate(90deg);
+  transform-origin: 0 0; /* Reset origin to top-left for better control */
+  background: #000; /* Ensure full black background */
+  overflow: hidden;
+}
+
+/* Position the container to center the rotated content */
+.player-pane.landscape {
+  top: 50%;
+  left: 50%;
+  margin-top: -50vw; /* Offset by half the new width */
+  margin-left: -50vh; /* Offset by half the new height */
+}
+
+/* Ensure video/iframe fills the rotated container */
+.player-pane.landscape #videoPlayer {
+  width: 100vw; /* Full viewport width */
+  height: 100vh; /* Full viewport height */
+  transform: rotate(-90deg); /* Counter-rotate the video to appear upright */
+  transform-origin: 0 0; /* Align with container origin */
+  object-fit: contain; /* Maintain aspect ratio, adjust as needed */
+}
+
+/* Control buttons positioning (adjust for landscape) */
+.player-pane.landscape .closeBtn,
+.player-pane.landscape .backBtn,
+.player-pane.landscape .fullscreen-btn {
+  position: absolute;
+  top: 10px;
+  padding: 5px 10px;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  border: none;
+  cursor: pointer;
+  z-index: 1001;
+}
+
+.player-pane.landscape .closeBtn {
+  right: 10px;
+}
+
+.player-pane.landscape .backBtn {
+  left: 10px;
+}
+
+.player-pane.landscape .fullscreen-btn {
+  right: 60px; /* Adjusted to avoid overlap */
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) and (orientation: landscape) {
+  .player-pane.landscape {
+    width: 100vh;
+    height: 100vw;
+    margin-top: -50vw;
+    margin-left: -50vh;
+  }
+
+  .player-pane.landscape #videoPlayer {
+    width: 100vw;
+    height: 100vh;
+  }
+}
+
+@media (min-width: 769px) and (orientation: landscape) {
+  .player-pane.landscape {
+    width: 100vh;
+    height: 100vw;
+    margin-top: -50vw;
+    margin-left: -50vh;
+  }
+
+  .player-pane.landscape #videoPlayer {
+    width: 100vw;
+    height: 100vh;
+  }
 }
