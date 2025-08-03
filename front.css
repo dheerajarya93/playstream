@@ -945,8 +945,8 @@ iframe#videoPlayer {
 
 /* Position the container to center the rotated content */
 .player-pane.landscape {
-  top: 50%;
-  left: 50%;
+  top: 100%;
+  left: 100%;
   margin-top: -50vw; /* Offset by half the new width */
   margin-left: -50vh; /* Offset by half the new height */
 }
@@ -987,12 +987,12 @@ iframe#videoPlayer {
 }
 
 /* Responsive adjustments */
-@media (max-width: 768px) and (orientation: landscape) {
+@media (max-width: 768px) {
   .player-pane.landscape {
     width: 100vh;
     height: 100vw;
-    margin-top: -50vw;
-    margin-left: -50vh;
+    margin-top: -100vh;
+    margin-left: 0vh;
   }
 
   .player-pane.landscape #videoPlayer {
@@ -1001,7 +1001,7 @@ iframe#videoPlayer {
   }
 }
 
-@media (min-width: 769px) and (orientation: landscape) {
+@media (min-width: 769px) {
   .player-pane.landscape {
     width: 100vh;
     height: 100vw;
