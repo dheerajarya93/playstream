@@ -991,7 +991,7 @@ iframe#videoPlayer {
   .player-pane.landscape {
     width: 100vh;
     height: 100vw;
-    margin-top: -100vh;
+    margin-top: -50vw;
     margin-left: 0vh;
   }
 
