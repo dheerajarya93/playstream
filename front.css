@@ -521,7 +521,6 @@ nav {
     flex: 0 0 35vh;
     width: 100%;
     margin-top: 15px;
-    max-height: 40vh;
   }
   #detailPane {
     padding: 20px;
@@ -584,12 +583,7 @@ nav {
   .filter-btn {
     font-size: 0.85rem;
   }
-  .hero-image {
-    max-height: 30vh;
-  }
-  .info-section {
-    max-height: 35vh;
-  }
+  
   #detailPane {
     padding: 15px;
     max-height: 100%; /* Constrain height for scrolling */
@@ -643,9 +637,7 @@ nav {
   .filter-btn {
     font-size: 0.8rem;
   }
-  .hero-image {
-    max-height: 25vh;
-  }
+
   .info-section {
     max-height: none;
   }
@@ -829,7 +821,7 @@ nav {
 }
 
 .player-pane.landscape {
-  transform: rotate(90deg);
+  /*transform: rotate(90deg);*/
   transform-origin: 50% 50%;
   top: 50%;
   left: 50%;
@@ -932,12 +924,12 @@ iframe#videoPlayer {
 
 /* Updated landscape mode */
 .player-pane.landscape {
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   width: 100vh; /* Use viewport height as width when rotated */
   height: 100vw; /* Use viewport width as height when rotated */
-  transform: rotate(90deg);
+  /*transform: rotate(90deg);*/
   transform-origin: 0 0; /* Reset origin to top-left for better control */
   background: #000; /* Ensure full black background */
   overflow: hidden;
@@ -945,8 +937,8 @@ iframe#videoPlayer {
 
 /* Position the container to center the rotated content */
 .player-pane.landscape {
-  top: 100%;
-  left: 100%;
+  top: 0%;
+  left: 0%;
   margin-top: -50vw; /* Offset by half the new width */
   margin-left: -50vh; /* Offset by half the new height */
 }
@@ -955,7 +947,7 @@ iframe#videoPlayer {
 .player-pane.landscape #videoPlayer {
   width: 100vw; /* Full viewport width */
   height: 100vh; /* Full viewport height */
-  transform: rotate(-90deg); /* Counter-rotate the video to appear upright */
+  /*transform: rotate(-90deg);*/ /* Counter-rotate the video to appear upright */
   transform-origin: 0 0; /* Align with container origin */
   object-fit: contain; /* Maintain aspect ratio, adjust as needed */
 }
@@ -982,22 +974,18 @@ iframe#videoPlayer {
   left: 10px;
 }
 
-.player-pane.landscape .fullscreen-btn {
-  right: 60px; /* Adjusted to avoid overlap */
-}
-
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .player-pane.landscape {
-    width: 100vh;
-    height: 100vw;
-    margin-top: -50vw;
+    width: 100%;
+    height: 100%;
+    margin-top: 0vw;
     margin-left: 0vh;
   }
 
   .player-pane.landscape #videoPlayer {
-    width: 100vw;
-    height: 100vh;
+    width: 100%;
+    height: 100%;
   }
 }
 
