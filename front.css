@@ -588,7 +588,6 @@ nav {
     padding: 15px;
     max-height: 100%; /* Constrain height for scrolling */
     overflow-y: auto; /* Ensure scrolling */
-    height: 550px;
   }
   .title {
     font-size: 1.3rem;
@@ -821,7 +820,7 @@ nav {
 }
 
 .player-pane.landscape {
-  /*transform: rotate(90deg);*/
+  transform: rotate(90deg);
   transform-origin: 50% 50%;
   top: 50%;
   left: 50%;
@@ -929,7 +928,7 @@ iframe#videoPlayer {
   left: 0;
   width: 100vh; /* Use viewport height as width when rotated */
   height: 100vw; /* Use viewport width as height when rotated */
-  /*transform: rotate(90deg);*/
+  transform: rotate(90deg);
   transform-origin: 0 0; /* Reset origin to top-left for better control */
   background: #000; /* Ensure full black background */
   overflow: hidden;
@@ -938,7 +937,7 @@ iframe#videoPlayer {
 /* Position the container to center the rotated content */
 .player-pane.landscape {
   top: 0%;
-  left: 0%;
+  left: 100%;
   margin-top: -50vw; /* Offset by half the new width */
   margin-left: -50vh; /* Offset by half the new height */
 }
@@ -977,8 +976,8 @@ iframe#videoPlayer {
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .player-pane.landscape {
-    width: 100%;
-    height: 100%;
+    /*width: 100%;
+    height: 100%;*/
     margin-top: 0vw;
     margin-left: 0vh;
   }
